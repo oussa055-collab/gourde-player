@@ -1,4 +1,3 @@
-
 name: Build Gourde Player
 
 on:
@@ -13,10 +12,19 @@ jobs:
 
       - name: Décompresser le projet
         run: |
-          ls -la
           Z=$(find . -maxdepth 2 -name '*.zip' | head -n 1)
           echo "Zip trouvé : $Z"
           unzip -q "$Z" -d project
+
+      - name: Trouver la racine du projet
+        run: |
+          S=$(find project -name settings.gradle.kts | head -n 1)
+          echo "Fichier trouvé : $S"
+          if [ -z "$S" ]; then
+            ls -R project | head -60
+            exit 1
+          fi
+          echo "ROOT=$(dirname "$S")" >> $GITHUB_ENV
 
       - uses: actions/setup-java@v4
         with:
@@ -28,10 +36,9 @@ jobs:
           gradle-version: 8.9
 
       - name: Compiler l'APK
-        working-directory: project
-        run: gradle assembleDebug --no-daemon
+        run: cd "$ROOT" && gradle assembleDebug --no-daemon
 
       - uses: actions/upload-artifact@v4
         with:
           name: GourdePlayer-apk
-          path: project/app/build/outputs/apk/debug/*.apk
+          path: project/**/build/outputs/apk/debug/*.apk
