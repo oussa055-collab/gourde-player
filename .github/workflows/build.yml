@@ -1,3 +1,4 @@
+
 name: Build Gourde Player
 
 on:
@@ -11,7 +12,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Décompresser le projet
-        run: unzip -q GourdePlayer.zip -d project
+        run: |
+          ls -la
+          Z=$(find . -maxdepth 2 -name '*.zip' | head -n 1)
+          echo "Zip trouvé : $Z"
+          unzip -q "$Z" -d project
 
       - uses: actions/setup-java@v4
         with:
