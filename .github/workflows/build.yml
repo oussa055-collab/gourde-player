@@ -9,11 +9,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Décompresser le projet
         run: |
-          Z=$(find . -maxdepth 2 -name '*.zip' | head -n 1)
+          Z=""
+          BEST=0
+          while IFS= read -r f; do
+            T=$(git log -1 --format=%ct -- "$f")
+            T=${T:-0}
+            if [ "$T" -gt "$BEST" ]; then
+              BEST=$T
+              Z="$f"
+            fi
+          done < <(find . -maxdepth 2 -name '*.zip' -not -path './.git/*')
           echo "Zip trouvé : $Z"
+          if [ -z "$Z" ]; then exit 1; fi
           unzip -q "$Z" -d project
 
       - name: Trouver la racine du projet
